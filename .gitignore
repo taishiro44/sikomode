@@ -2,3 +2,5 @@ nbproject
 build
 build.xml
 manifest.mf
+midi
+test

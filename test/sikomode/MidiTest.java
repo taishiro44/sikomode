@@ -49,5 +49,18 @@ public class MidiTest {
         boolean result = instance.readMidiFile(filePath);
         assertEquals(expResult, result);
     }
+
+    /**
+     * Test of print method, of class Midi.
+     */
+    @Test
+    public void testPrint() {
+        System.out.println("print");
+        Midi instance = new Midi();
+        String filePath = "midi/yakusoku.mid";
+        boolean result = instance.readMidiFile(filePath);
+        instance.print();
+        fail("The test case is a prototype.");
+    }
     
 }

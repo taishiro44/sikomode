@@ -52,4 +52,27 @@ public class Midi {
         return canRead;
     }
     
+    /**
+     * 読み込んだMIDIファイルの中身を標準出力する。
+     */
+    public void print(){
+        for(int k = 0; k < this.tracks.length; k++){
+            System.out.println("track number : " + k);
+            for(int i = 0; i < this.tracks[k].size(); i++){
+                try{
+                    this.midiEvent = this.tracks[k].get(i);
+                    this.midiMessage = this.midiEvent.getMessage().getMessage();
+                }catch(ArrayIndexOutOfBoundsException ex){
+                    System.out.println("----------------------------------------");
+                    break;
+                }
+                System.out.print("index : " + i + ", Tick : " + this.midiEvent.getTick() + ", ");
+                for(int j = 0; j < this.midiMessage.length; j++){
+                    System.out.print((0xFF & this.midiMessage[j]) + ", ");
+                }
+                System.out.println("");
+            }
+        }
+    }
+    
 }

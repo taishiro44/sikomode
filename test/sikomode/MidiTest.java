@@ -44,7 +44,7 @@ public class MidiTest {
     @Test
     public void testReadMidiFile() {
         System.out.println("readMidiFile");
-        String filePath = "midi/USERSONG013.MID";
+        String filePath = "midi/yakusoku.mid";
         Midi instance = new Midi();
         boolean expResult = true;
         boolean result = instance.readMidiFile(filePath);
@@ -58,9 +58,9 @@ public class MidiTest {
     public void testPrint() {
         System.out.println("print");
         Midi instance = new Midi();
-        String filePath = "midi/USERSONG013.MID";
+        String filePath = "midi/yakusoku.mid";
         boolean result = instance.readMidiFile(filePath);
-        instance.print();
+//        instance.print();
     }
 
     /**
@@ -70,20 +70,46 @@ public class MidiTest {
     public void testGetNoteOn() {
         System.out.println("getNoteOn");
         Midi instance = new Midi();
-        String filePath = "midi/USERSONG013.MID";
+        String filePath = "midi/yakusoku.mid";
         instance.readMidiFile(filePath);
         byte[] edf = new byte[128];
         Arrays.fill(edf, (byte)-1);
         String str;
-        for(long tick = 0;; tick++){
+        for(long tick = 0;tick < 10000; tick++){
             byte[] result = instance.getNoteOn(tick);
             if(Arrays.equals(result, edf)){
                 break;
             }
             str = instance.byteArray2Code(result);
-            System.out.println("Tick : " + tick + ", Name : " + str);
-            
+//            System.out.println("Tick : " + tick + ", Name : " + str);
         }
+    }
+
+    /**
+     * Test of byteArray2Code method, of class Midi.
+     */
+    @Test
+    public void testByteArray2Code() {
+//        System.out.println("byteArray2Code");
+//        byte[] noteOnArray = null;
+//        Midi instance = new Midi();
+//        String expResult = "";
+//        String result = instance.byteArray2Code(noteOnArray);
+//        assertEquals(expResult, result);
+//        // TODO review the generated test code and remove the default call to fail.
+//        fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of printFormat method, of class Midi.
+     */
+    @Test
+    public void testPrintFormat() {
+        System.out.println("printFormat");
+        Midi instance = new Midi();
+        String filePath = "midi/yakusoku.mid";
+        boolean result = instance.readMidiFile(filePath);
+        instance.printFormat();
     }
 
 }

@@ -191,11 +191,19 @@ public class Midi {
     }
     
     /**
+     * 読み込んだMIDIファイルのフォーマットを標準出力する。
+     */
+    public void printFormat(){
+        System.out.println("File Format");
+        System.out.println("type(0, 1 or 2) : " + this.midiFileFormat.getType());
+        System.out.println("divisionType : " + this.midiFileFormat.getDivisionType());
+        System.out.println("resolution" + this.midiFileFormat.getResolution());
+    }
+    
+    /**
      * 読み込んだMIDIファイルの中身を標準出力する。
      */
     public void print() {
-        System.out.println("File Format");
-        System.out.println("type(0, 1 or 2) : " + this.midiFileFormat.getType());
         for (int k = 0; k < this.tracks.length; k++) {
             System.out.println("Track Number : " + k);
             for (int i = 0; i < this.tracks[k].size(); i++) {

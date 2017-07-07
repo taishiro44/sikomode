@@ -145,12 +145,37 @@ public class Midi {
         return this.currentNoteOn;
     }
 
+    /**
+     * yakusoku.mid の形式で、NOTE_OFFではなくベロシティ0でNOTE_OFFを表現している。
+     * @param tick
+     * @return 
+     */
     private byte[] getNoteOnSmf1(long tick) {
+        //ここでtickが大きすぎる場合の例外処理をばしましょう。
+        for(Track track : this.tracks){
+            for (int i = 0; i < track.size(); i++) {
+                this.midiEvent = track.get(i);
+                if (this.midiEvent.getTick() > tick) {
+                    break;
+                } else if (this.midiEvent.getTick() >= tick) {
+                    this.midiMessage = this.midiEvent.getMessage().getMessage();
+                    if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
+                        if ((this.midiMessage[2] & 0xff) > 0) {
+                            this.currentNoteOn[this.midiMessage[1]] = 1;
+                        } else { //ベロシティ0でNote_Off
+                            this.currentNoteOn[this.midiMessage[1]] = 0;
+                        }
+                    }
+                }
+            }
+        }
         return this.currentNoteOn;
     }
 
     /**
-     * NoteOnのバイト配列を
+     * NoteOnのバイト配列を音名に変換する関数です。
+     * 変換は以下のurl参照。ヤマハ式で変換しました。
+     * @see <a href="http://www.g200kg.com/jp/docs/tech/notefreq.html">DTM技術情報</a>
      * @param noteOnArray
      * @return 
      */

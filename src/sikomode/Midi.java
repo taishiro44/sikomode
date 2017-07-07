@@ -33,6 +33,7 @@ public class Midi {
     private long firstNoteOnTick; //最初の音が鳴ったときのTick
     private byte [] currentNoteOn;
     private int currentIndex;
+    private int [] currentIndices;
     private int NOTE_ON = 144;
     private int NOTE_OFF = 128;
     private int NOTE_NUM_MAX = 128;
@@ -64,10 +65,13 @@ public class Midi {
             Logger.getLogger(Midi.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
+        System.out.println("\"" + filePath + "\"" + " read success.");
+        //初期化
         this.midiFileType = this.midiFileFormat.getType();
         this.tracks = this.sequence.getTracks();
+        this.currentIndices = new int[this.tracks.length];
+        Arrays.fill(this.currentIndices, 0);
         this.setFirstNoteOn();
-        System.out.println("\"" + filePath + "\"" + " read success.");
         return true;
     }
 
@@ -147,14 +151,15 @@ public class Midi {
 
     /**
      * yakusoku.mid の形式で、NOTE_OFFではなくベロシティ0でNOTE_OFFを表現している。
+     * 毎回ファイル先頭から探索してる。くっそ効率悪い
      * @param tick
      * @return 
      */
     private byte[] getNoteOnSmf1(long tick) {
         //ここでtickが大きすぎる場合の例外処理をばしましょう。
-        for(Track track : this.tracks){
-            for (int i = 0; i < track.size(); i++) {
-                this.midiEvent = track.get(i);
+        for(int i = 0; i < this.tracks.length; i++){
+            for (int j = this.currentIndices[i]; j < tracks[i].size(); j++) {
+                this.midiEvent = tracks[i].get(j);
                 if (this.midiEvent.getTick() > tick) {
                     break;
                 } else if (this.midiEvent.getTick() >= tick) {
@@ -166,6 +171,7 @@ public class Midi {
                             this.currentNoteOn[this.midiMessage[1]] = 0;
                         }
                     }
+                    this.currentIndices[i] = j; //すでに探索した部分は探索しない。
                 }
             }
         }

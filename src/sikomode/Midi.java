@@ -202,7 +202,20 @@ public class Midi {
     public void printFormat(){
         System.out.println("File Format");
         System.out.println("type(0, 1 or 2) : " + this.midiFileFormat.getType());
-        System.out.println("divisionType : " + this.midiFileFormat.getDivisionType());
+        float divisionType = this.midiFileFormat.getDivisionType();
+        String divisionTypeStr = "";
+        if(divisionType == Sequence.PPQ){ //"switchに置換しろ"ってでるけど、switchはfloatに非対応
+            divisionTypeStr = "PPQ";
+        }else if(divisionType == Sequence.SMPTE_24){
+            divisionTypeStr = "SMPTE_24";
+        }else if(divisionType == Sequence.SMPTE_25){
+            divisionTypeStr = "SMTPE_25";
+        }else if(divisionType == Sequence.SMPTE_30){
+            divisionTypeStr = "SMPTE_30";
+        }else if(divisionType == Sequence.SMPTE_30DROP){
+            divisionTypeStr = "SMTPE_30DROP";
+        }
+        System.out.println("divisionType : " + divisionTypeStr);
         System.out.println("resolution" + this.midiFileFormat.getResolution());
     }
     

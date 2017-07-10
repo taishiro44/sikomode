@@ -106,6 +106,7 @@ public class Midi {
         System.out.println("first on note Tick : " + this.firstNoteOnTick);
     }
 
+    
     /**
      * 指定したTickのNoteOnを取得する。 
      * ただし、第一音がなる瞬間のTickをTick == 0として扱う。 
@@ -115,17 +116,17 @@ public class Midi {
      * @param tick
      * @return tickがファイルの末尾を超えたとき-1埋めした配列を返す。
      */
-    public byte[] getNoteOn(long tick) {
+    public byte[] getSound(long tick) {
         byte[] returnValue = new byte[this.NOTE_NUM_MAX];
         if (this.midiFileType == 0) {
-            returnValue = getNoteOnSmf0(tick + this.firstNoteOnTick);
+            returnValue = getSoundSmf0(tick + this.firstNoteOnTick);
         } else if (this.midiFileType == 1) {
-            returnValue = getNoteOnSmf1(tick + this.firstNoteOnTick);
+            returnValue = getSoundSmf1(tick + this.firstNoteOnTick);
         }
         return returnValue;
     }
 
-    private byte[] getNoteOnSmf0(long tick) {
+    private byte[] getSoundSmf0(long tick) {
         this.midiEvent = this.tracks[0].get(this.tracks[0].size() - 1);
         if (tick > this.midiEvent.getTick()) { //引数のtickがファイルを超えるとき
             Arrays.fill(this.currentNoteOn, (byte) -1);
@@ -155,8 +156,11 @@ public class Midi {
      * @param tick
      * @return 
      */
-    private byte[] getNoteOnSmf1(long tick) {
-        //ここでtickが大きすぎる場合の例外処理をばしましょう。
+    private byte[] getSoundSmf1(long tick) {
+        if (tick > this.midiEvent.getTick()) { //引数のtickがファイルを超えるとき
+            Arrays.fill(this.currentNoteOn, (byte) -1);
+            return this.currentNoteOn;
+        }
         for(int i = 0; i < this.tracks.length; i++){
             for (int j = this.currentIndices[i]; j < tracks[i].size(); j++) {
                 this.midiEvent = tracks[i].get(j);

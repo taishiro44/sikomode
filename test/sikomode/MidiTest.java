@@ -67,21 +67,24 @@ public class MidiTest {
      * Test of getNoteOn method, of class Midi.
      */
     @Test
-    public void testGetNoteOn() {
-        System.out.println("getNoteOn");
+    public void testGetSound() {
+        System.out.println("getSound");
         Midi instance = new Midi();
         String filePath = "midi/yakusoku.mid";
         instance.readMidiFile(filePath);
         byte[] edf = new byte[128];
         Arrays.fill(edf, (byte)-1);
         String str;
-        for(long tick = 0;tick < 10000; tick++){
-            byte[] result = instance.getNoteOn(tick);
+        for(long tick = 0;; tick++){
+            byte[] result = instance.getSound(tick);
+            if(result[0] == -1) {
+                break;
+            }
             if(Arrays.equals(result, edf)){
                 break;
             }
             str = instance.byteArray2Code(result);
-//            System.out.println("Tick : " + tick + ", Name : " + str);
+            System.out.println("Tick : " + tick + ", Name : " + str);
         }
     }
 

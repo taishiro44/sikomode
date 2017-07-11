@@ -34,6 +34,7 @@ public class Midi {
     private byte [] currentNoteOn;
     private int currentIndex;
     private int [] currentIndices;
+    private int [] noteOnIndices;
     private int NOTE_ON = 144;
     private int NOTE_OFF = 128;
     private int NOTE_NUM_MAX = 128;
@@ -44,6 +45,19 @@ public class Midi {
         this.currentIndex = 0;
     }
 
+    /**
+     * MIDIファイルを読み込んだ後に、ファイルの値などを用いて初期化するやつとかを初期化する。
+     */
+    private void initialize(){
+        this.midiFileType = this.midiFileFormat.getType();
+        this.tracks = this.sequence.getTracks();
+        this.currentIndices = new int[this.tracks.length];
+        this.noteOnIndices = new int[this.tracks.length];
+        Arrays.fill(this.currentIndices, 0);
+        Arrays.fill(this.noteOnIndices, 0);
+        this.setFirstNoteOn();
+    }
+    
     /**
      * MIDIファイルを読み込む
      *
@@ -67,11 +81,7 @@ public class Midi {
         }
         System.out.println("\"" + filePath + "\"" + " read success.");
         //初期化
-        this.midiFileType = this.midiFileFormat.getType();
-        this.tracks = this.sequence.getTracks();
-        this.currentIndices = new int[this.tracks.length];
-        Arrays.fill(this.currentIndices, 0);
-        this.setFirstNoteOn();
+        this.initialize();
         return true;
     }
 
@@ -106,9 +116,60 @@ public class Midi {
         System.out.println("first on note Tick : " + this.firstNoteOnTick);
     }
 
-    
     /**
-     * 指定したTickのNoteOnを取得する。 
+     * ファイル先頭から読み込み、NoteOnとなっている時のTickを取り出す。 ファイルの読み込みインデックスは保存されるため、 繰り返し実行することでファイル末尾まで読み込めます。
+     *
+     * @return
+     */
+    public long getNoteOnTick() {
+        long returnValue = 0;
+        if (this.midiFileType == 0) {
+            returnValue = getNoteOnTickSmf0();
+        } else if (this.midiFileType == 1) {
+            returnValue = getNoteOnTickSmf1();
+        }
+        return returnValue;
+    }
+
+    private long getNoteOnTickSmf0() {
+        long tick = -1; //ファイル末尾まで達したら-1を返す。
+        for (int i = this.noteOnIndices[0]; i < this.tracks[0].size(); i++) {
+            this.midiEvent = this.tracks[0].get(i);
+            this.midiMessage = this.midiEvent.getMessage().getMessage();
+            if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
+                tick = this.midiEvent.getTick();
+                this.noteOnIndices[0] = i + 1;
+                break;
+            }
+        }
+        return tick;
+    }
+
+    private long getNoteOnTickSmf1() {
+        long tick = Long.MAX_VALUE; //return value
+        for (int i = 0; i < this.tracks.length; i++) {
+            for (int j = this.noteOnIndices[i]; j < tracks[i].size(); j++) {
+                this.midiEvent = tracks[i].get(j);
+                this.midiMessage = this.midiEvent.getMessage().getMessage();
+                if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
+                    if ((this.midiMessage[2] & 0xff) > 0) { //ベロシティ>0でNoteOn
+                        if(this.midiEvent.getTick() < tick){
+                            tick = this.midiEvent.getTick();
+                            this.noteOnIndices[i] = j + 1; //インデックスを保存
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if(tick == Long.MAX_VALUE){
+            tick = -1; //ファイル末尾まで達したら-1を返す。
+        }
+        return tick;
+    }
+
+    /**
+     * 指定したTickに出ている音を取得する。 
      * ただし、第一音がなる瞬間のTickをTick == 0として扱う。 
      * （本当は、最初の音がなるまでに無音の部分があるため、Tick == 0は無音だったり、設定だったりする。
      * でも、差分を考えるときに、Tickを合わせた方が簡単だから、Tick==0を最初の音が鳴る瞬間に統一する。）

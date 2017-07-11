@@ -60,7 +60,7 @@ public class MidiTest {
         Midi instance = new Midi();
         String filePath = "midi/yakusoku.mid";
         boolean result = instance.readMidiFile(filePath);
-//        instance.print();
+        instance.print();
     }
 
     /**
@@ -113,6 +113,23 @@ public class MidiTest {
         String filePath = "midi/yakusoku.mid";
         boolean result = instance.readMidiFile(filePath);
         instance.printFormat();
+    }
+
+    /**
+     * Test of getNoteOnTick method, of class Midi.
+     */
+    @Test
+    public void testGetNoteOnTick() {
+        System.out.println("getNoteOnTick");
+        Midi instance = new Midi();
+        String filePath = "midi/USERSONG013.MID";
+        instance.readMidiFile(filePath);
+        long expResult = 0L;
+        while(true){
+            long result = instance.getNoteOnTick();
+            if(result == -1) break;
+            System.out.println("Note on Tick : " + result);
+        }
     }
 
 }

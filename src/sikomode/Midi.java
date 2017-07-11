@@ -31,10 +31,10 @@ public class Midi {
     private byte[] midiMessage;
     private int midiFileType; //smfのフォーマットタイプ(0, 1 or 2)
     private long firstNoteOnTick; //最初の音が鳴ったときのTick
-    private byte [] currentNoteOn;
+    private byte[] currentNoteOn;
     private int currentIndex;
-    private int [] currentIndices;
-    private int [] noteOnIndices;
+    private int[] currentIndices;
+    private int[] noteOnIndices;
     private int NOTE_ON = 144;
     private int NOTE_OFF = 128;
     private int NOTE_NUM_MAX = 128;
@@ -48,7 +48,7 @@ public class Midi {
     /**
      * MIDIファイルを読み込んだ後に、ファイルの値などを用いて初期化するやつとかを初期化する。
      */
-    private void initialize(){
+    private void initialize() {
         this.midiFileType = this.midiFileFormat.getType();
         this.tracks = this.sequence.getTracks();
         this.currentIndices = new int[this.tracks.length];
@@ -57,7 +57,7 @@ public class Midi {
         Arrays.fill(this.noteOnIndices, 0);
         this.setFirstNoteOn();
     }
-    
+
     /**
      * MIDIファイルを読み込む
      *
@@ -153,7 +153,7 @@ public class Midi {
                 this.midiMessage = this.midiEvent.getMessage().getMessage();
                 if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
                     if ((this.midiMessage[2] & 0xff) > 0) { //ベロシティ>0でNoteOn
-                        if(this.midiEvent.getTick() < tick){
+                        if (this.midiEvent.getTick() < tick) {
                             tick = this.midiEvent.getTick();
                             this.noteOnIndices[i] = j + 1; //インデックスを保存
                             break;
@@ -162,17 +162,15 @@ public class Midi {
                 }
             }
         }
-        if(tick == Long.MAX_VALUE){
+        if (tick == Long.MAX_VALUE) {
             tick = -1; //ファイル末尾まで達したら-1を返す。
         }
         return tick;
     }
 
     /**
-     * 指定したTickに出ている音を取得する。 
-     * ただし、第一音がなる瞬間のTickをTick == 0として扱う。 
-     * （本当は、最初の音がなるまでに無音の部分があるため、Tick == 0は無音だったり、設定だったりする。
-     * でも、差分を考えるときに、Tickを合わせた方が簡単だから、Tick==0を最初の音が鳴る瞬間に統一する。）
+     * 指定したTickに出ている音を取得する。 ただし、第一音がなる瞬間のTickをTick == 0として扱う。 （本当は、最初の音がなるまでに無音の部分があるため、Tick ==
+     * 0は無音だったり、設定だったりする。 でも、差分を考えるときに、Tickを合わせた方が簡単だから、Tick==0を最初の音が鳴る瞬間に統一する。）
      *
      * @param tick
      * @return tickがファイルの末尾を超えたとき-1埋めした配列を返す。
@@ -212,17 +210,17 @@ public class Midi {
     }
 
     /**
-     * yakusoku.mid の形式で、NOTE_OFFではなくベロシティ0でNOTE_OFFを表現している。
-     * 毎回ファイル先頭から探索してる。くっそ効率悪い
+     * yakusoku.mid の形式で、NOTE_OFFではなくベロシティ0でNOTE_OFFを表現している。 毎回ファイル先頭から探索してる。くっそ効率悪い
+     *
      * @param tick
-     * @return 
+     * @return
      */
     private byte[] getSoundSmf1(long tick) {
         if (tick > this.midiEvent.getTick()) { //引数のtickがファイルを超えるとき
             Arrays.fill(this.currentNoteOn, (byte) -1);
             return this.currentNoteOn;
         }
-        for(int i = 0; i < this.tracks.length; i++){
+        for (int i = 0; i < this.tracks.length; i++) {
             for (int j = this.currentIndices[i]; j < tracks[i].size(); j++) {
                 this.midiEvent = tracks[i].get(j);
                 if (this.midiEvent.getTick() > tick) {
@@ -244,46 +242,46 @@ public class Midi {
     }
 
     /**
-     * NoteOnのバイト配列を音名に変換する関数です。
-     * 変換は以下のurl参照。ヤマハ式で変換しました。
+     * NoteOnのバイト配列を音名に変換する関数です。 変換は以下のurl参照。ヤマハ式で変換しました。
+     *
      * @see <a href="http://www.g200kg.com/jp/docs/tech/notefreq.html">DTM技術情報</a>
      * @param noteOnArray
-     * @return 
+     * @return
      */
-    public String byteArray2Code(byte [] noteOnArray){
+    public String byteArray2Code(byte[] noteOnArray) {
         String[] code = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"};
         String result = "";
-        for(int i = 0; i < noteOnArray.length; i++){
-            if(noteOnArray[i] == 1){
-                result += code[i%12] + (i/12 - 2) + ",";
+        for (int i = 0; i < noteOnArray.length; i++) {
+            if (noteOnArray[i] == 1) {
+                result += code[i % 12] + (i / 12 - 2) + ",";
             }
         }
         return result;
     }
-    
+
     /**
      * 読み込んだMIDIファイルのフォーマットを標準出力する。
      */
-    public void printFormat(){
+    public void printFormat() {
         System.out.println("File Format");
         System.out.println("type(0, 1 or 2) : " + this.midiFileFormat.getType());
         float divisionType = this.midiFileFormat.getDivisionType();
         String divisionTypeStr = "";
-        if(divisionType == Sequence.PPQ){ //"switchに置換しろ"ってでるけど、switchはfloatに非対応
+        if (divisionType == Sequence.PPQ) { //"switchに置換しろ"ってでるけど、switchはfloatに非対応
             divisionTypeStr = "PPQ";
-        }else if(divisionType == Sequence.SMPTE_24){
+        } else if (divisionType == Sequence.SMPTE_24) {
             divisionTypeStr = "SMPTE_24";
-        }else if(divisionType == Sequence.SMPTE_25){
+        } else if (divisionType == Sequence.SMPTE_25) {
             divisionTypeStr = "SMTPE_25";
-        }else if(divisionType == Sequence.SMPTE_30){
+        } else if (divisionType == Sequence.SMPTE_30) {
             divisionTypeStr = "SMPTE_30";
-        }else if(divisionType == Sequence.SMPTE_30DROP){
+        } else if (divisionType == Sequence.SMPTE_30DROP) {
             divisionTypeStr = "SMTPE_30DROP";
         }
         System.out.println("divisionType : " + divisionTypeStr);
         System.out.println("resolution" + this.midiFileFormat.getResolution());
     }
-    
+
     /**
      * 読み込んだMIDIファイルの中身を標準出力する。
      */

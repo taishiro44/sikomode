@@ -146,13 +146,26 @@ public class Midi {
     }
 
     private long getNoteOnTickSmf0() {
-        long tick = -1; //ファイル末尾まで達したら-1を返す。
+        //ファイル末尾まで達したら-1を返す。
+        long tick = -1; 
+        //保持したindexからファイルを探索
         for (int i = this.noteOnIndices[0]; i < this.tracks[0].size(); i++) {
             this.midiEvent = this.tracks[0].get(i);
             this.midiMessage = this.midiEvent.getMessage().getMessage();
-            if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
+            //NoteOnならtickを更新
+            if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) { 
                 tick = this.midiEvent.getTick();
                 this.noteOnIndices[0] = i + 1;
+                //同一tickに複数の音があるためループでindexの更新
+                for (int j = this.noteOnIndices[0]; j < this.tracks[0].size(); j++) {
+                    this.midiEvent = this.tracks[0].get(j);
+                    //同じtickがあればindexを更新する
+                    if (this.midiEvent.getTick() == tick) { 
+                        this.noteOnIndices[0] = j + 1;
+                        continue;
+                    }
+                    break;
+                }
                 break;
             }
         }
@@ -160,26 +173,58 @@ public class Midi {
     }
 
     private long getNoteOnTickSmf1() {
-        long tick = Long.MAX_VALUE; //return value
-        for (int i = 0; i < this.tracks.length; i++) {
-            for (int j = this.noteOnIndices[i]; j < tracks[i].size(); j++) {
+        long returnValue;
+        long[] tick = new long[this.tracks.length];
+        //-1で初期化
+        Arrays.fill(tick, -1);
+        //複数trackからNoteOnのindexとtickを取得
+        for (int i = 0; i < this.tracks.length; i++) { 
+            //trackの中を読む
+            for (int j = this.noteOnIndices[i]; j < tracks[i].size(); j++) { 
                 this.midiEvent = tracks[i].get(j);
                 this.midiMessage = this.midiEvent.getMessage().getMessage();
-                if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
-                    if ((this.midiMessage[2] & 0xff) > 0) { //ベロシティ>0でNoteOn
-                        if (this.midiEvent.getTick() < tick) {
-                            tick = this.midiEvent.getTick();
-                            this.noteOnIndices[i] = j + 1; //インデックスを保存
-                            break;
+                //NoteOnかつベロシティ>0のとき、Indexとtickを保持
+                if ((this.midiMessage[0] & 0xff) == this.NOTE_ON &&
+                        (this.midiMessage[2] & 0xff) > 0 ) {
+                    tick[i] = this.midiEvent.getTick();
+                    //NoteOnのindexを保持
+                    this.noteOnIndices[i] = j;
+                    //複数のNoteONが同一tickにある場合、Indexを更新する。
+                    for (int k = this.noteOnIndices[i] + 1; k < tracks[i].size(); k++) { 
+                        this.midiEvent = tracks[i].get(k);
+                        if(this.midiEvent.getTick() == tick[i]){
+                            this.noteOnIndices[i] = k;
+                            continue;
                         }
+                        break;
                     }
+                    break;
                 }
             }
         }
-        if (tick == Long.MAX_VALUE) {
-            tick = -1; //ファイル末尾まで達したら-1を返す。
+        //tickの最小値を取得
+        long min = Long.MAX_VALUE;
+        for(int i = 0; i < tick.length;i++){
+            //NoteOnが存在しないものはtick == -1 のため、if()ではじく
+            if(tick[i] > 0){
+                if(min > tick[i]){
+                    min = tick[i];
+                }
+            }
         }
-        return tick;
+        //もし一つもNoteOnがなければ、minはLong.MAX_VALUE
+        if(min == Long.MAX_VALUE){
+            returnValue = -1;
+        }else{
+            //最小のtickを持つtrackのindexを進める
+            for(int i = 0; i < tick.length;i++){
+                if(tick[i] == min){
+                    this.noteOnIndices[i]++;
+                }
+            }
+            returnValue = min;
+        }
+        return returnValue;
     }
 
     /**
@@ -214,9 +259,10 @@ public class Midi {
             if (this.midiEvent.getTick() == tick) {
                 this.midiMessage = this.midiEvent.getMessage().getMessage();
                 if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
-                    this.currentNoteOn[this.midiMessage[1]] = 1;
+                    returnValue[this.midiMessage[1]] = 1;
                     break;
                 }
+                this.currentIndex = i+1;
             } else if(this.midiEvent.getTick() > tick){
                 break;
             }

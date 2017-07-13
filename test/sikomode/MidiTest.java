@@ -11,7 +11,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -43,12 +42,12 @@ public class MidiTest {
      */
     @Test
     public void testReadMidiFile() {
-        System.out.println("readMidiFile");
-        String filePath = "midi/yakusoku.mid";
-        Midi instance = new Midi();
-        boolean expResult = true;
-        boolean result = instance.readMidiFile(filePath);
-        assertEquals(expResult, result);
+//        System.out.println("readMidiFile");
+//        String filePath = "midi/yakusoku.mid";
+//        Midi instance = new Midi();
+//        boolean expResult = true;
+//        boolean result = instance.readMidiFile(filePath);
+//        assertEquals(expResult, result);
     }
 
     /**
@@ -56,28 +55,31 @@ public class MidiTest {
      */
     @Test
     public void testPrint() {
-        System.out.println("print");
-        Midi instance = new Midi();
-        String filePath = "midi/yakusoku.mid";
-        boolean result = instance.readMidiFile(filePath);
-        instance.print();
+//        System.out.println("print");
+//        Midi instance = new Midi();
+//        String filePath = "midi/yakusoku.mid";
+//        boolean result = instance.readMidiFile(filePath);
+//        instance.print();
     }
 
     /**
      * Test of getNoteOn method, of class Midi.
      */
     @Test
-    public void testGetSound() {
-        System.out.println("getSound");
+    public void testGetNoteOn() {
+        System.out.println("getNoteOn");
         Midi instance = new Midi();
-        String filePath = "midi/yakusoku.mid";
+        String filePath = "midi/yakusoku.MID";
         instance.readMidiFile(filePath);
         byte[] edf = new byte[128];
         Arrays.fill(edf, (byte)-1);
         String str;
-        for(long tick = 0;; tick++){
-            byte[] result = instance.getSound(tick);
-            if(result[0] == -1) {
+        long tick;
+        for(;;){
+            tick = instance.getNoteOnTick();
+            if(tick < 0) break;
+            byte[] result = instance.getNoteOn(tick);
+            if(result[0] < 0) {
                 break;
             }
             if(Arrays.equals(result, edf)){
@@ -108,11 +110,11 @@ public class MidiTest {
      */
     @Test
     public void testPrintFormat() {
-        System.out.println("printFormat");
-        Midi instance = new Midi();
-        String filePath = "midi/yakusoku.mid";
-        boolean result = instance.readMidiFile(filePath);
-        instance.printFormat();
+//        System.out.println("printFormat");
+//        Midi instance = new Midi();
+//        String filePath = "midi/yakusoku.mid";
+//        boolean result = instance.readMidiFile(filePath);
+//        instance.printFormat();
     }
 
     /**
@@ -120,16 +122,19 @@ public class MidiTest {
      */
     @Test
     public void testGetNoteOnTick() {
-        System.out.println("getNoteOnTick");
-        Midi instance = new Midi();
-        String filePath = "midi/USERSONG013.MID";
-        instance.readMidiFile(filePath);
-        long expResult = 0L;
-        while(true){
-            long result = instance.getNoteOnTick();
-            if(result == -1) break;
-            System.out.println("Note on Tick : " + result);
-        }
+//        System.out.println("getNoteOnTick");
+//        Midi instance = new Midi();
+//        String filePath = "midi/yakusoku.mid";
+//        instance.readMidiFile(filePath);
+//        long expResult = 0L;
+//        while(true){
+//            long result = instance.getNoteOnTick();
+//            if(result < 0) {
+//                System.out.println("result < 0");
+//                break;
+//            }
+//            System.out.println("Note on Tick : " + result);
+//        }
     }
 
 }

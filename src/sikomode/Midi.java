@@ -56,13 +56,13 @@ public class Midi {
         for (Track track : this.tracks) {
             this.midiEvent = track.get(track.size() - 1);
             tickTemp = this.midiEvent.getTick();
-            if(tickTemp > tickMax){
+            if (tickTemp > tickMax) {
                 tickMax = tickTemp;
             }
         }
         this.setFirstNoteOn();
     }
-    
+
     /**
      * MIDIファイルを読み込む
      *
@@ -127,6 +127,7 @@ public class Midi {
      * 繰り返し実行することでファイル末尾まで読み込めます。<\br>
      * ここで返されるtickは最初の音が鳴ったときのtickを0として返します。<\br>
      * ファイル末尾まで達したら負の値を返します。
+     *
      * @return
      */
     public long getNoteOnTick() {
@@ -142,20 +143,20 @@ public class Midi {
 
     private long getNoteOnTickSmf0() {
         //ファイル末尾まで達したら-1を返す。
-        long tick = -1; 
+        long tick = -1;
         //保持したindexからファイルを探索
         for (int i = this.noteOnIndices[0]; i < this.tracks[0].size(); i++) {
             this.midiEvent = this.tracks[0].get(i);
             this.midiMessage = this.midiEvent.getMessage().getMessage();
             //NoteOnならtickを更新
-            if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) { 
+            if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
                 tick = this.midiEvent.getTick();
                 this.noteOnIndices[0] = i + 1;
                 //同一tickに複数の音があるためループでindexの更新
                 for (int j = this.noteOnIndices[0]; j < this.tracks[0].size(); j++) {
                     this.midiEvent = this.tracks[0].get(j);
                     //同じtickがあればindexを更新する
-                    if (this.midiEvent.getTick() == tick) { 
+                    if (this.midiEvent.getTick() == tick) {
                         this.noteOnIndices[0] = j + 1;
                         continue;
                     }
@@ -173,21 +174,21 @@ public class Midi {
         //-1で初期化
         Arrays.fill(tick, -1);
         //複数trackからNoteOnのindexとtickを取得
-        for (int i = 0; i < this.tracks.length; i++) { 
+        for (int i = 0; i < this.tracks.length; i++) {
             //trackの中を読む
-            for (int j = this.noteOnIndices[i]; j < tracks[i].size(); j++) { 
+            for (int j = this.noteOnIndices[i]; j < tracks[i].size(); j++) {
                 this.midiEvent = tracks[i].get(j);
                 this.midiMessage = this.midiEvent.getMessage().getMessage();
                 //NoteOnかつベロシティ>0のとき、Indexとtickを保持
-                if ((this.midiMessage[0] & 0xff) == this.NOTE_ON &&
-                        (this.midiMessage[2] & 0xff) > 0 ) {
+                if ((this.midiMessage[0] & 0xff) == this.NOTE_ON
+                        && (this.midiMessage[2] & 0xff) > 0) {
                     tick[i] = this.midiEvent.getTick();
                     //NoteOnのindexを保持
                     this.noteOnIndices[i] = j;
                     //複数のNoteONが同一tickにある場合、Indexを更新する。
-                    for (int k = this.noteOnIndices[i] + 1; k < tracks[i].size(); k++) { 
+                    for (int k = this.noteOnIndices[i] + 1; k < tracks[i].size(); k++) {
                         this.midiEvent = tracks[i].get(k);
-                        if(this.midiEvent.getTick() == tick[i]){
+                        if (this.midiEvent.getTick() == tick[i]) {
                             this.noteOnIndices[i] = k;
                             continue;
                         }
@@ -199,21 +200,21 @@ public class Midi {
         }
         //tickの最小値を取得
         long min = Long.MAX_VALUE;
-        for(int i = 0; i < tick.length;i++){
+        for (int i = 0; i < tick.length; i++) {
             //NoteOnが存在しないものはtick == -1 のため、if()ではじく
-            if(tick[i] > 0){
-                if(min > tick[i]){
+            if (tick[i] > 0) {
+                if (min > tick[i]) {
                     min = tick[i];
                 }
             }
         }
         //もし一つもNoteOnがなければ、minはLong.MAX_VALUE
-        if(min == Long.MAX_VALUE){
+        if (min == Long.MAX_VALUE) {
             returnValue = -1;
-        }else{
+        } else {
             //最小のtickを持つtrackのindexを進める
-            for(int i = 0; i < tick.length;i++){
-                if(tick[i] == min){
+            for (int i = 0; i < tick.length; i++) {
+                if (tick[i] == min) {
                     this.noteOnIndices[i]++;
                 }
             }
@@ -242,7 +243,7 @@ public class Midi {
     }
 
     private byte[] getNoteOnSmf0(long tick) {
-        byte [] returnValue = new byte[this.NOTE_NUM_MAX];
+        byte[] returnValue = new byte[this.NOTE_NUM_MAX];
         Arrays.fill(returnValue, (byte) 0);
         if (tick > this.tickMax) { //引数のtickがファイルを超えるとき
             Arrays.fill(returnValue, (byte) -1);
@@ -261,7 +262,7 @@ public class Midi {
                     if (this.midiEvent.getTick() == tick) {
                         //NoteOnの場所に1を立てる
                         this.midiMessage = this.midiEvent.getMessage().getMessage();
-                        if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) { 
+                        if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
                             returnValue[this.midiMessage[1]] = 1;
                         }
                         continue;
@@ -284,29 +285,29 @@ public class Midi {
      * @return
      */
     private byte[] getNoteOnSmf1(long tick) {
-        byte [] returnValue = new byte[this.NOTE_NUM_MAX];
+        byte[] returnValue = new byte[this.NOTE_NUM_MAX];
         Arrays.fill(returnValue, (byte) 0);
         //引数のtickがファイルを超えるとき
-        if (tick > this.tickMax) { 
+        if (tick > this.tickMax) {
             Arrays.fill(returnValue, (byte) -1);
             return returnValue;
         }
         //全trackを探索
-        for (int i = 0; i < this.tracks.length; i++) {
+        for (Track track : this.tracks) {
             //指定indexからNoteOnまで探索
-            for (int j = 0; j < tracks[i].size(); j++) {
-                this.midiEvent = tracks[i].get(j);
-                if(this.midiEvent.getTick() > tick){
+            for (int j = 0; j < track.size(); j++) {
+                this.midiEvent = track.get(j);
+                if (this.midiEvent.getTick() > tick) {
                     break;
-                }else if(this.midiEvent.getTick() == tick){
+                } else if (this.midiEvent.getTick() == tick) {
                     //複数のNoteONが同一tickにある場合
-                    for (int k = j; k < tracks[i].size(); k++) { 
-                        this.midiEvent = tracks[i].get(k);
-                        if(this.midiEvent.getTick() == tick){
+                    for (int k = j; k < track.size(); k++) {
+                        this.midiEvent = track.get(k);
+                        if (this.midiEvent.getTick() == tick) {
                             //NoteOnがあればreturnValueに格納
                             this.midiMessage = this.midiEvent.getMessage().getMessage();
-                            if ((this.midiMessage[0] & 0xff) == this.NOTE_ON &&
-                                   (this.midiMessage[2] & 0xff) > 0) {
+                            if ((this.midiMessage[0] & 0xff) == this.NOTE_ON
+                                    && (this.midiMessage[2] & 0xff) > 0) {
                                 returnValue[this.midiMessage[1]] = 1;
                             }
                             continue;
@@ -331,8 +332,8 @@ public class Midi {
         String[] code = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"};
         String result = "";
         byte[] zero = new byte[this.NOTE_NUM_MAX];
-        Arrays.fill(zero, (byte)0);
-        if(Arrays.equals(zero, noteOnArray)){
+        Arrays.fill(zero, (byte) 0);
+        if (Arrays.equals(zero, noteOnArray)) {
             return "NA";
         }
         for (int i = 0; i < noteOnArray.length; i++) {
@@ -351,7 +352,8 @@ public class Midi {
         System.out.println("type(0, 1 or 2) : " + this.midiFileFormat.getType());
         float divisionType = this.midiFileFormat.getDivisionType();
         String divisionTypeStr = "";
-        if (divisionType == Sequence.PPQ) { //"switchに置換しろ"ってでるけど、switchはfloatに非対応
+        //"switchに置換しろ"ってでるけど、switchはfloatに非対応
+        if (divisionType == Sequence.PPQ) {
             divisionTypeStr = "PPQ";
         } else if (divisionType == Sequence.SMPTE_24) {
             divisionTypeStr = "SMPTE_24";

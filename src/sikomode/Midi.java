@@ -130,6 +130,7 @@ public class Midi {
         } else if (this.midiFileType == 1) {
             returnValue = getNoteOnTickSmf1();
         }
+        returnValue -= this.firstNoteOnTick;
         return returnValue;
     }
 

@@ -57,7 +57,7 @@ public class Sikomode {
         }
         //結果をファイルに保存
         //上書きモードです。
-        File file = new File("diff.txt");
+        File file = new File("output/diff.txt");
         try (FileWriter fw = new FileWriter(file)) {
             try (PrintWriter pw = new PrintWriter(new BufferedWriter(fw))) {
                 for (int i = 0; i < tickList.size(); i++) {

@@ -32,8 +32,6 @@ public class Midi {
     private int midiFileType; //smfのフォーマットタイプ(0, 1 or 2)
     private long firstNoteOnTick; //最初の音が鳴ったときのTick
     private byte[] currentNoteOn;
-    private int currentIndex;
-    private int[] currentIndices;
     private int[] noteOnIndices;
     private long tickMax;
     private int NOTE_ON = 144;
@@ -43,7 +41,6 @@ public class Midi {
     public Midi() {
         this.currentNoteOn = new byte[this.NOTE_NUM_MAX];
         Arrays.fill(this.currentNoteOn, (byte) 0); //配列を0埋め
-        this.currentIndex = 0;
     }
 
     /**
@@ -52,9 +49,7 @@ public class Midi {
     private void initialize() {
         this.midiFileType = this.midiFileFormat.getType();
         this.tracks = this.sequence.getTracks();
-        this.currentIndices = new int[this.tracks.length];
         this.noteOnIndices = new int[this.tracks.length];
-        Arrays.fill(this.currentIndices, 0);
         Arrays.fill(this.noteOnIndices, 0);
         this.tickMax = -1;
         long tickTemp;
@@ -248,25 +243,35 @@ public class Midi {
 
     private byte[] getNoteOnSmf0(long tick) {
         byte [] returnValue = new byte[this.NOTE_NUM_MAX];
+        Arrays.fill(returnValue, (byte) 0);
         if (tick > this.tickMax) { //引数のtickがファイルを超えるとき
             Arrays.fill(returnValue, (byte) -1);
             return returnValue;
         }
-        //0埋めで初期化
-        Arrays.fill(returnValue, (byte) 0);
-        for (int i = this.currentIndex; i < this.tracks[0].size(); i++) {
+        //保持したindexからファイルを探索
+        for (int i = 0; i < this.tracks[0].size(); i++) {
             this.midiEvent = this.tracks[0].get(i);
+            //指定したtickならば
             if (this.midiEvent.getTick() == tick) {
-                this.midiMessage = this.midiEvent.getMessage().getMessage();
-                if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
-                    returnValue[this.midiMessage[1]] = 1;
+                //NoteOnならindexを更新, resutValueに格納
+                //同一tickに複数の音があるためループ
+                for (int j = i; j < this.tracks[0].size(); j++) {
+                    this.midiEvent = this.tracks[0].get(j);
+                    //同じtickがあればindexを更新する
+                    if (this.midiEvent.getTick() == tick) {
+                        //NoteOnの場所に1を立てる
+                        this.midiMessage = this.midiEvent.getMessage().getMessage();
+                        if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) { 
+                            returnValue[this.midiMessage[1]] = 1;
+                        }
+                        continue;
+                    }
                     break;
                 }
-                this.currentIndex = i+1;
-            } else if(this.midiEvent.getTick() > tick){
+                break;
+            } else if (this.midiEvent.getTick() > tick) {
                 break;
             }
-            this.currentIndex = i;
         }
         return returnValue;
     }
@@ -279,29 +284,40 @@ public class Midi {
      * @return
      */
     private byte[] getNoteOnSmf1(long tick) {
-        if (tick > this.tickMax) { //引数のtickがファイルを超えるとき
-            Arrays.fill(this.currentNoteOn, (byte) -1);
-            return this.currentNoteOn;
+        byte [] returnValue = new byte[this.NOTE_NUM_MAX];
+        Arrays.fill(returnValue, (byte) 0);
+        //引数のtickがファイルを超えるとき
+        if (tick > this.tickMax) { 
+            Arrays.fill(returnValue, (byte) -1);
+            return returnValue;
         }
+        //全trackを探索
         for (int i = 0; i < this.tracks.length; i++) {
-            for (int j = this.currentIndices[i]; j < tracks[i].size(); j++) {
+            //指定indexからNoteOnまで探索
+            for (int j = 0; j < tracks[i].size(); j++) {
                 this.midiEvent = tracks[i].get(j);
-                if (this.midiEvent.getTick() > tick) {
+                if(this.midiEvent.getTick() > tick){
                     break;
-                } else if (this.midiEvent.getTick() >= tick) {
-                    this.midiMessage = this.midiEvent.getMessage().getMessage();
-                    if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
-                        if ((this.midiMessage[2] & 0xff) > 0) {
-                            this.currentNoteOn[this.midiMessage[1]] = 1;
-                        } else { //ベロシティ0でNote_Off
-                            this.currentNoteOn[this.midiMessage[1]] = 0;
+                }else if(this.midiEvent.getTick() == tick){
+                    //複数のNoteONが同一tickにある場合
+                    for (int k = j; k < tracks[i].size(); k++) { 
+                        this.midiEvent = tracks[i].get(k);
+                        if(this.midiEvent.getTick() == tick){
+                            //NoteOnがあればreturnValueに格納
+                            this.midiMessage = this.midiEvent.getMessage().getMessage();
+                            if ((this.midiMessage[0] & 0xff) == this.NOTE_ON &&
+                                   (this.midiMessage[2] & 0xff) > 0) {
+                                returnValue[this.midiMessage[1]] = 1;
+                            }
+                            continue;
                         }
+                        break;
                     }
-                    this.currentIndices[i] = j; //すでに探索した部分は探索しない。
+                    break;
                 }
             }
         }
-        return this.currentNoteOn;
+        return returnValue;
     }
 
     /**

@@ -69,7 +69,7 @@ public class MidiTest {
     public void testGetNoteOn() {
         System.out.println("getNoteOn");
         Midi instance = new Midi();
-        String filePath = "midi/yakusoku.MID";
+        String filePath = "midi/USERSONG013.MID";
         instance.readMidiFile(filePath);
         byte[] edf = new byte[128];
         Arrays.fill(edf, (byte)-1);

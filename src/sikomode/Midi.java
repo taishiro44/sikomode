@@ -255,6 +255,11 @@ public class Midi {
     public String byteArray2Code(byte[] noteOnArray) {
         String[] code = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"};
         String result = "";
+        byte[] zero = new byte[this.NOTE_NUM_MAX];
+        Arrays.fill(zero, (byte)0);
+        if(Arrays.equals(zero, noteOnArray)){
+            return "NA";
+        }
         for (int i = 0; i < noteOnArray.length; i++) {
             if (noteOnArray[i] == 1) {
                 result += code[i % 12] + (i / 12 - 2) + ",";

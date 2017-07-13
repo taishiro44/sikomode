@@ -35,6 +35,7 @@ public class Midi {
     private int currentIndex;
     private int[] currentIndices;
     private int[] noteOnIndices;
+    private long tickMax;
     private int NOTE_ON = 144;
     private int NOTE_OFF = 128;
     private int NOTE_NUM_MAX = 128;
@@ -55,9 +56,18 @@ public class Midi {
         this.noteOnIndices = new int[this.tracks.length];
         Arrays.fill(this.currentIndices, 0);
         Arrays.fill(this.noteOnIndices, 0);
+        this.tickMax = -1;
+        long tickTemp;
+        for (Track track : this.tracks) {
+            this.midiEvent = track.get(track.size() - 1);
+            tickTemp = this.midiEvent.getTick();
+            if(tickTemp > tickMax){
+                tickMax = tickTemp;
+            }
+        }
         this.setFirstNoteOn();
     }
-
+    
     /**
      * MIDIファイルを読み込む
      *
@@ -86,7 +96,7 @@ public class Midi {
     }
 
     /**
-     * 最初に音がなった瞬間のTickを取得してfirstOnTickに格納する。
+     * 最初に音がなった瞬間のTickを取得してfirstNoteOnTickに格納する。
      */
     private void setFirstNoteOn() {
         if (this.midiFileType == 0) {
@@ -120,7 +130,8 @@ public class Midi {
      * ファイル先頭から読み込み、NoteOnとなっている時のTickを取り出す。<\br>
      * ファイルの読み込みインデックスは保存されるため、 <\br>
      * 繰り返し実行することでファイル末尾まで読み込めます。<\br>
-     *
+     * ここで返されるtickは最初の音が鳴ったときのtickを0として返します。<\br>
+     * ファイル末尾まで達したら負の値を返します。
      * @return
      */
     public long getNoteOnTick() {
@@ -175,42 +186,43 @@ public class Midi {
      * 指定したTickに出ている音を取得する。 ただし、第一音がなる瞬間のTickをTick == 0として扱う。<\br>
      * (本当は、最初の音がなるまでに無音の部分があるため、Tick == 0は無音だったり、設定だったりする。<\br>
      * 差分を考えるときにTickを合わせた方が簡単だから、Tick==0を最初の音が鳴る瞬間に統一する。）<\br>
+     * NoteOnのみを検出するように変更する。<\br>
      *
      * @param tick
      * @return tickがファイルの末尾を超えたとき-1埋めした配列を返す。
      */
-    public byte[] getSound(long tick) {
+    public byte[] getNoteOn(long tick) {
         byte[] returnValue = new byte[this.NOTE_NUM_MAX];
         if (this.midiFileType == 0) {
-            returnValue = getSoundSmf0(tick + this.firstNoteOnTick);
+            returnValue = getNoteOnSmf0(tick + this.firstNoteOnTick);
         } else if (this.midiFileType == 1) {
-            returnValue = getSoundSmf1(tick + this.firstNoteOnTick);
+            returnValue = getNoteOnSmf1(tick + this.firstNoteOnTick);
         }
         return returnValue;
     }
 
-    private byte[] getSoundSmf0(long tick) {
-        this.midiEvent = this.tracks[0].get(this.tracks[0].size() - 1);
-        if (tick > this.midiEvent.getTick()) { //引数のtickがファイルを超えるとき
-            Arrays.fill(this.currentNoteOn, (byte) -1);
-            return this.currentNoteOn;
+    private byte[] getNoteOnSmf0(long tick) {
+        byte [] returnValue = new byte[this.NOTE_NUM_MAX];
+        if (tick > this.tickMax) { //引数のtickがファイルを超えるとき
+            Arrays.fill(returnValue, (byte) -1);
+            return returnValue;
         }
+        //0埋めで初期化
+        Arrays.fill(returnValue, (byte) 0);
         for (int i = this.currentIndex; i < this.tracks[0].size(); i++) {
             this.midiEvent = this.tracks[0].get(i);
-            if (this.midiEvent.getTick() > tick) {
-                break;
-            } else if (this.midiEvent.getTick() >= tick) {
+            if (this.midiEvent.getTick() == tick) {
                 this.midiMessage = this.midiEvent.getMessage().getMessage();
                 if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
                     this.currentNoteOn[this.midiMessage[1]] = 1;
+                    break;
                 }
-                if ((this.midiMessage[0] & 0xff) == this.NOTE_OFF) {
-                    this.currentNoteOn[this.midiMessage[1]] = 0;
-                }
-                this.currentIndex = i;
+            } else if(this.midiEvent.getTick() > tick){
+                break;
             }
+            this.currentIndex = i;
         }
-        return this.currentNoteOn;
+        return returnValue;
     }
 
     /**
@@ -220,8 +232,8 @@ public class Midi {
      * @param tick
      * @return
      */
-    private byte[] getSoundSmf1(long tick) {
-        if (tick > this.midiEvent.getTick()) { //引数のtickがファイルを超えるとき
+    private byte[] getNoteOnSmf1(long tick) {
+        if (tick > this.tickMax) { //引数のtickがファイルを超えるとき
             Arrays.fill(this.currentNoteOn, (byte) -1);
             return this.currentNoteOn;
         }

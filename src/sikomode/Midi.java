@@ -127,10 +127,10 @@ public class Midi {
     }
 
     /**
-     * ファイル先頭から読み込み、NoteOnとなっている時のTickを取り出す。<\br>
-     * ファイルの読み込みインデックスは保存されるため、 <\br>
-     * 繰り返し実行することでファイル末尾まで読み込めます。<\br>
-     * ここで返されるtickは最初の音が鳴ったときのtickを0として返します。<\br>
+     * ファイル先頭から読み込み、NoteOnとなっている時のTickを取り出す。<br>
+     * ファイルの読み込みインデックスは保存されるため、 <br>
+     * 繰り返し実行することでファイル末尾まで読み込めます。<br>
+     * ここで返されるtickは最初の音が鳴ったときのtickを0として返します。<br>
      * ファイル末尾まで達したら負の値を返します。
      *
      * @return
@@ -229,10 +229,10 @@ public class Midi {
     }
 
     /**
-     * 指定したTickに出ている音を取得する。 ただし、第一音がなる瞬間のTickをTick == 0として扱う。<\br>
-     * (本当は、最初の音がなるまでに無音の部分があるため、Tick == 0は無音だったり、設定だったりする。<\br>
-     * 差分を考えるときにTickを合わせた方が簡単だから、Tick==0を最初の音が鳴る瞬間に統一する。）<\br>
-     * NoteOnのみを検出するように変更する。<\br>
+     * 指定したTickに出ている音を取得する。 ただし、第一音がなる瞬間のTickをTick == 0として扱う。<br>
+     * (本当は、最初の音がなるまでに無音の部分があるため、Tick == 0は無音だったり、設定だったりする。<br>
+     * 差分を考えるときにTickを合わせた方が簡単だから、Tick==0を最初の音が鳴る瞬間に統一する。）<br>
+     * NoteOnのみを検出するように変更する。<br>
      *
      * @param tick
      * @return tickがファイルの末尾を超えたとき-1埋めした配列を返す。
@@ -283,8 +283,8 @@ public class Midi {
     }
 
     /**
-     * yakusoku.mid の形式で、NOTE_OFFではなくベロシティ0でNOTE_OFFを表現している。<\br>
-     * 毎回ファイル先頭から探索してる。くっそ効率悪い。<\br>
+     * yakusoku.mid の形式で、NOTE_OFFではなくベロシティ0でNOTE_OFFを表現している。<br>
+     * 毎回ファイル先頭から探索してる。くっそ効率悪い。<br>
      *
      * @param tick
      * @return
@@ -327,7 +327,7 @@ public class Midi {
     }
 
     /**
-     * NoteOnのバイト配列を音名に変換する関数です。 変換は以下のurl参照。ヤマハ式で変換しました。<\br>
+     * NoteOnのバイト配列を音名に変換する関数です。 変換は以下のurl参照。ヤマハ式で変換しました。<br>
      *
      * @see <a href="http://www.g200kg.com/jp/docs/tech/notefreq.html">DTM技術情報</a>
      * @param noteOnArray
@@ -390,7 +390,7 @@ public class Midi {
             divisionTypeStr = "SMTPE_30DROP";
         }
         System.out.println("divisionType : " + divisionTypeStr);
-        System.out.println("resolution" + this.midiFileFormat.getResolution());
+        System.out.println("resolution : " + this.midiFileFormat.getResolution());
     }
 
     /**

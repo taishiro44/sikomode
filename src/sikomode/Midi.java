@@ -7,8 +7,6 @@ package sikomode;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiFileFormat;
@@ -30,6 +28,7 @@ public class Midi {
     private MidiFileFormat midiFileFormat;
     private byte[] midiMessage;
     private int midiFileType; //smfのフォーマットタイプ(0, 1 or 2)
+    private int resolution; //タイミング解像度
     private long firstNoteOnTick; //最初の音が鳴ったときのTick
     private byte[] currentNoteOn;
     private int[] noteOnIndices;
@@ -344,6 +343,26 @@ public class Midi {
         return result;
     }
 
+    /**
+     * タイミング解像度を取得する。
+     * @return 
+     */
+    public int getResolution() {
+        return this.resolution;
+    }
+
+    /**
+     * MIDIファイルからフォーマットなどの情報を読み込む
+     */
+    private void setFormat(){
+        //タイミング解像度
+        this.resolution = this.midiFileFormat.getResolution();
+        //smf0, smf1, smf2のいずれか
+        this.midiFileType = this.midiFileFormat.getType();
+        //トラック取得
+        this.tracks = this.sequence.getTracks();
+    }
+    
     /**
      * 読み込んだMIDIファイルのフォーマットを標準出力する。
      */

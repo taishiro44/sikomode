@@ -46,6 +46,8 @@ public class Midi {
      * MIDIファイルを読み込んだ後に、ファイルの値などを用いて初期化するやつとかを初期化する。
      */
     private void init() {
+        //midiからフォーマットなどの情報を読み込む
+        this.setFormat();
         //indexを初期化
         this.currentNoteOn = new byte[this.NOTE_NUM_MAX];
         Arrays.fill(this.currentNoteOn, (byte) 0); //配列を0埋め
@@ -63,8 +65,6 @@ public class Midi {
         }
         //最初の音が鳴るtickを取得
         this.firstNoteOnTick = this.getFirstNoteOn();
-        //midiからフォーマットなどの情報を読み込む
-        this.setFormat();
     }
 
     /**

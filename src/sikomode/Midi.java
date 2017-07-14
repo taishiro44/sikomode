@@ -39,7 +39,8 @@ public class Midi {
     private int NOTE_OFF = 128;
     private int NOTE_NUM_MAX = 128;
 
-    public Midi() {
+    public Midi(String filePath) {
+        this.readMidiFile(filePath);
     }
     
     /**
@@ -73,7 +74,7 @@ public class Midi {
      * @param filePath
      * @return boolean ファイルの読み込み成否
      */
-    public boolean readMidiFile(String filePath) {
+    private boolean readMidiFile(String filePath) {
         this.file = new File(filePath);
         boolean canRead = this.file.canRead();
         if (!canRead) {

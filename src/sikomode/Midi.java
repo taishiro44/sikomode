@@ -92,32 +92,32 @@ public class Midi {
     /**
      * 最初に音がなった瞬間のTickを取得してfirstNoteOnTickに格納する。
      */
-    private void setFirstNoteOn() {
+    private long getFirstNoteOn() {
+        long firstTick = Long.MAX_VALUE; //十分に大きい整数で初期化しておく。
         if (this.midiFileType == 0) {
             for (int i = 0; i < this.tracks[0].size(); i++) {
                 this.midiEvent = this.tracks[0].get(i);
                 this.midiMessage = this.midiEvent.getMessage().getMessage();
                 if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
-                    this.firstNoteOnTick = this.midiEvent.getTick();
+                    firstTick = this.midiEvent.getTick();
                     break;
                 }
             }
         } else if (this.midiFileType == 1) {
-            this.firstNoteOnTick = Long.MAX_VALUE; //十分に大きい整数で初期化しておく。
             for (Track track : this.tracks) {
                 for (int i = 0; i < track.size(); i++) {
                     this.midiEvent = track.get(i);
                     this.midiMessage = this.midiEvent.getMessage().getMessage();
                     if ((this.midiMessage[0] & 0xff) == this.NOTE_ON) {
-                        if (this.firstNoteOnTick > this.midiEvent.getTick()) {
-                            this.firstNoteOnTick = this.midiEvent.getTick();
+                        if (firstTick > this.midiEvent.getTick()) {
+                            firstTick = this.midiEvent.getTick();
                             break;
                         }
                     }
                 }
             }
         }
-        System.out.println("first on note Tick : " + this.firstNoteOnTick);
+        return firstTick;
     }
 
     /**

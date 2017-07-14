@@ -7,6 +7,8 @@ package sikomode;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiFileFormat;
@@ -38,18 +40,18 @@ public class Midi {
     private int NOTE_NUM_MAX = 128;
 
     public Midi() {
-        this.currentNoteOn = new byte[this.NOTE_NUM_MAX];
-        Arrays.fill(this.currentNoteOn, (byte) 0); //配列を0埋め
     }
-
+    
     /**
      * MIDIファイルを読み込んだ後に、ファイルの値などを用いて初期化するやつとかを初期化する。
      */
-    private void initialize() {
-        this.midiFileType = this.midiFileFormat.getType();
-        this.tracks = this.sequence.getTracks();
+    private void init() {
+        //indexを初期化
+        this.currentNoteOn = new byte[this.NOTE_NUM_MAX];
+        Arrays.fill(this.currentNoteOn, (byte) 0); //配列を0埋め
         this.noteOnIndices = new int[this.tracks.length];
-        Arrays.fill(this.noteOnIndices, 0);
+        Arrays.fill(this.noteOnIndices, 0); //配列を0埋め
+        //tickの最大値を取得（ファイル末尾まで読んだかどうかの条件に使う
         this.tickMax = -1;
         long tickTemp;
         for (Track track : this.tracks) {
@@ -59,7 +61,10 @@ public class Midi {
                 tickMax = tickTemp;
             }
         }
-        this.setFirstNoteOn();
+        //最初の音が鳴るtickを取得
+        this.firstNoteOnTick = this.getFirstNoteOn();
+        //midiからフォーマットなどの情報を読み込む
+        this.setFormat();
     }
 
     /**
@@ -85,7 +90,7 @@ public class Midi {
         }
         System.out.println("\"" + filePath + "\"" + " read success.");
         //初期化
-        this.initialize();
+        this.init();
         return true;
     }
 

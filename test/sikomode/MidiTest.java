@@ -67,27 +67,27 @@ public class MidiTest {
      */
     @Test
     public void testGetNoteOn() {
-        System.out.println("getNoteOn");
-        Midi instance = new Midi();
-        String filePath = "midi/USERSONG013.MID";
-        instance.readMidiFile(filePath);
-        byte[] edf = new byte[128];
-        Arrays.fill(edf, (byte)-1);
-        String str;
-        long tick;
-        for(;;){
-            tick = instance.getNoteOnTick();
-            if(tick < 0) break;
-            byte[] result = instance.getNoteOn(tick);
-            if(result[0] < 0) {
-                break;
-            }
-            if(Arrays.equals(result, edf)){
-                break;
-            }
-            str = instance.byteArray2Code(result);
-            System.out.println("Tick : " + tick + ", Name : " + str);
-        }
+//        System.out.println("getNoteOn");
+//        Midi instance = new Midi();
+//        String filePath = "midi/USERSONG018.MID";
+//        instance.readMidiFile(filePath);
+//        byte[] edf = new byte[128];
+//        Arrays.fill(edf, (byte)-1);
+//        String str;
+//        long tick;
+//        for(;;){
+//            tick = instance.getNoteOnTick();
+//            if(tick < 0) break;
+//            byte[] result = instance.getNoteOn(tick);
+//            if(result[0] < 0) {
+//                break;
+//            }
+//            if(Arrays.equals(result, edf)){
+//                break;
+//            }
+//            str = instance.byteArray2Code(result);
+//            System.out.println("Tick : " + tick + ", Name : " + str);
+//        }
     }
 
     /**
@@ -112,7 +112,7 @@ public class MidiTest {
     public void testPrintFormat() {
 //        System.out.println("printFormat");
 //        Midi instance = new Midi();
-//        String filePath = "midi/yakusoku.mid";
+//        String filePath = "midi/USERSONG018.mid";
 //        boolean result = instance.readMidiFile(filePath);
 //        instance.printFormat();
     }

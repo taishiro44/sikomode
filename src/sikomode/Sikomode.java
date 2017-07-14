@@ -28,25 +28,45 @@ public class Sikomode {
     public static void main(String[] args) {
         // TODO code application logic here
 
-        Midi train = new Midi();
-        Midi query = new Midi();
-        String filePathTrain = "midi/USERSONG013.MID";
+        String filePathTrain = "midi/USERSONG018.MID";
         String filePathQuery = "midi/yakusoku.mid";
-        train.readMidiFile(filePathTrain);
-        query.readMidiFile(filePathQuery);
+        Midi train = new Midi(filePathTrain);
+        Midi query = new Midi(filePathQuery);
 
         long tick;
-        byte[] soundTrain;
+        int trainResolution = train.getResolution();
+        int queryResolution = query.getResolution();
+        double ratio = trainResolution / queryResolution;
+        byte[] soundTrain = new byte[128];
         byte[] soundQuery;
         List<Long> tickList = new ArrayList<>();
         boolean isDifferent;
+        long r = trainResolution / 16;
         while (true) {
             tick = query.getNoteOnTick();
             if (tick < 0) {
                 break;
             }
-            soundTrain = train.getNoteOn(tick);
             soundQuery = query.getNoteOn(tick);
+            //録音から読み込むときは、指定tickにゆとりを持たせる。
+            //タイミング解像度1920で、指定tickからだけの読み込みはシビアすぎる。
+            Arrays.fill(soundTrain, (byte)0);
+            long temp = (long) (tick * ratio);
+            for (long i = (temp - r); i < (temp + r); i++) {
+                byte[] s = train.getNoteOn(i);
+                for (int j = 0; j < s.length; j++) {
+                    if(s[j] == 1){
+                        soundTrain[j] = 1;
+                    }
+                }
+            }
+            /*DEBUG*/
+            //同一tickの録音と楽譜を出力
+//            System.out.println("tick : " + tick);
+//            System.out.println("rec   : " + train.byteArray2Code(soundTrain));
+//            System.out.println("score : " + train.byteArray2Code(soundQuery));
+            /*DEBUG*/
+            
             //バイト配列の差分処理
             //まずは二つの配列が違うということが分ればok
             isDifferent = !Arrays.equals(soundTrain, soundQuery);
@@ -57,7 +77,7 @@ public class Sikomode {
         }
         //結果をファイルに保存
         //上書きモードです。
-        File file = new File("output/diff.txt");
+        File file = new File("output/diffTick.txt");
         try (FileWriter fw = new FileWriter(file)) {
             try (PrintWriter pw = new PrintWriter(new BufferedWriter(fw))) {
                 for (int i = 0; i < tickList.size(); i++) {
@@ -74,6 +94,8 @@ public class Sikomode {
         //こいつをNoteOnのみ返すようにすれば、音域だけでなく音の数もとることが出来る。
         //なぜNoteOnか、というと、ダンパーペダルがあるため、音の終わりを捉えるのは難しいからである。
         int[] soundRange = new int[tickList.size()];
+        int[] soundNum = new int[tickList.size()];
+        Arrays.fill(soundNum, 0);
         long tickRange = 60; //指定したtickの前後(+-30)を見る。
         //tickRangeで指定した時間の間の音を全部足したもの
         int[] soundSum = new int[128];
@@ -82,7 +104,7 @@ public class Sikomode {
             long t = tickList.get(i);
             //指定したtickの前後を見る。
             //値の範囲の60は１小節の半分。(コレはmidiのタイミング解像度の半分)
-            System.out.println("t : " + t);
+//            System.out.println("t : " + t);
             for (long range = (t - tickRange); range < (t + tickRange); range++) {
                 if(range < 0) { //ファイルの先頭以前の部分ならばcontinue
                     continue;
@@ -111,15 +133,44 @@ public class Sikomode {
                 }
             }
             
-            System.out.println(Arrays.toString(soundSum));
+//            System.out.println(Arrays.toString(soundSum));
             //差分の結果、抽出したtickの前後一小節の音域
             soundRange[i] = (maxIdx - minIdx);
+            //音の数
+            for(int j = 0; j < soundSum.length; j++){
+                soundNum[i] += soundSum[j];
+            }
         }
 
+        double rangeAve = 0;
+        double numAve = 0;
         System.out.println("range");
-        for(int i = 0; i < soundRange.length; i++){
-            System.out.println(i + " : " + soundRange[i]);
+        
+        //結果をファイルに保存
+        //上書きモードです。
+        File file2 = new File("output/range-num.txt");
+        try (FileWriter fw = new FileWriter(file2)) {
+            try (PrintWriter pw = new PrintWriter(new BufferedWriter(fw))) {
+                for (int i = 0; i < soundRange.length; i++) {
+                    pw.print(soundRange[i] + ", ");
+                    pw.print(soundNum[i]);
+                    pw.println();
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Sikomode.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        for(int i = 0; i < soundRange.length; i++){
+//            System.out.println(i + ", 幅 : " + soundRange[i] + ", 数 : " + soundNum[i]);
+            rangeAve += soundRange[i];
+            numAve += soundNum[i];
+        }
+        rangeAve /= soundRange.length;
+        numAve /= soundNum.length;
+        System.out.println("平均");
+        System.out.println("幅 : " + rangeAve + ", 数 : " + numAve);
+        
             
         //ここで出てきた音域（と音の数）の配列がユーザーのモデル。
         //次に、モデルの解釈を行う。

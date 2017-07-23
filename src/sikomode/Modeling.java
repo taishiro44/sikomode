@@ -96,25 +96,11 @@ public class Modeling {
         }
         double rangeAve = 0;
         double numAve = 0;
-        System.out.println("range");
 
         //結果をファイルに保存
-        //上書きモードです。
-        File file2 = new File("output/range-num.txt");
-        try (FileWriter fw = new FileWriter(file2)) {
-            try (PrintWriter pw = new PrintWriter(new BufferedWriter(fw))) {
-                for (int i = 0; i < soundRange.length; i++) {
-                    pw.print(soundRange[i] + " ");
-                    pw.print(soundNum[i]);
-                    pw.println();
-                }
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Sikomode.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        this.save2File(soundRange, soundNum);
 
         for (int i = 0; i < soundRange.length; i++) {
-//            System.out.println(i + ", 幅 : " + soundRange[i] + ", 数 : " + soundNum[i]);
             rangeAve += soundRange[i];
             numAve += soundNum[i];
         }
@@ -169,4 +155,25 @@ public class Modeling {
         return tickList;
     }
 
+    /**
+     * x, y の二次元の情報をファイルに保存します。<br>
+     * x, y は空白区切りで保存されます。<br>
+     * x, y の配列のサイズは同じでないといけません。<br>
+     */
+    private void save2File(int [] x, int [] y){
+        //結果をファイルに保存
+        //上書きモードです。
+        File file2 = new File("output/range-num.txt");
+        try (FileWriter fw = new FileWriter(file2)) {
+            try (PrintWriter pw = new PrintWriter(new BufferedWriter(fw))) {
+                for (int i = 0; i < x.length; i++) {
+                    pw.print(x[i] + " ");
+                    pw.print(y[i]);
+                    pw.println();
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Sikomode.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }

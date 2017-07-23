@@ -64,8 +64,9 @@ public class Modeling {
         for(int i = 0; i < pre.num.length;i++){
             feature.num[i] = post.num[i] - pre.num[i];
         }
+        feature.tick = pre.tick;
         //結果をファイルに保存
-        this.save2File(feature.range, feature.num);
+        this.save2File(feature.tick, feature.range, feature.num);
     }
 
     /**
@@ -136,6 +137,8 @@ public class Modeling {
             Arrays.fill(soundSum, (byte) 0);
             //指定したtickの前後を見る。
             tick = tickList.get(i);
+            //tickを保存
+            feature.tick[i] = tick;
             for (long range = (tick - preRange);
                     range < (tick + postRange); range++) {
                 //ファイルの先頭以前の部分ならばcontinue
@@ -181,15 +184,16 @@ public class Modeling {
      * x, y は空白区切りで保存されます。<br>
      * x, y の配列のサイズは同じでないといけません。<br>
      */
-    private void save2File(int[] x, int[] y) {
+    private void save2File(long[] x, int[] y, int[] z) {
         //結果をファイルに保存
         //上書きモードです。
-        File file2 = new File("output/range-num.txt");
+        File file2 = new File("output/range-num.csv");
         try (FileWriter fw = new FileWriter(file2)) {
             try (PrintWriter pw = new PrintWriter(new BufferedWriter(fw))) {
                 for (int i = 0; i < x.length; i++) {
-                    pw.print(x[i] + " ");
-                    pw.print(y[i]);
+                    pw.print(x[i] + " ,");
+                    pw.print(y[i] + " ,");
+                    pw.print(z[i]);
                     pw.println();
                 }
             }

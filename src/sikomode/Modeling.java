@@ -44,24 +44,48 @@ public class Modeling {
      * ユーザーがミスをした前後１小節の音の数と音域の変化量をモデルとする。<br>
      */
     public void culcModel() {
+        //差分を計算し、差分のあるTickのリストを取得
         List<Long> tickList = this.calcDiffece();
         byte[] soundScore;
         int[] soundRange = new int[tickList.size()];
         int[] soundNum = new int[tickList.size()];
+        Arrays.fill(soundRange, 0);
         Arrays.fill(soundNum, 0);
-        long tickRange = 60; //指定したtickの前後(+-30)を見る。
-        //tickRangeで指定した時間の間の音を全部足したもの
+        //ミスの直前の値
+        int[] preRange = new int[tickList.size()];
+        int[] preNum = new int[tickList.size()];
+        Arrays.fill(preRange, 0);
+        Arrays.fill(preNum, 0);
+        //ミスを含め、直後の値
+        int[] postRange = new int[tickList.size()];
+        int[] postNum = new int[tickList.size()];
+        Arrays.fill(postRange, 0);
+        Arrays.fill(postNum, 0);
+        //タイミング解像度は４分音符の長さなので、2倍することで２分音符分の長さをみる
+        //つまり、前後合わせて1小節の長さとなる
+        long tickRange = this.score.getResolution() * 2;
+        //tickRangeで指定した時間の間の音の総和
         int[] soundSum = new int[128];
+        int[] preSum = new int[128];
+        int[] postSum = new int[128];
+        int minIdx = Integer.MAX_VALUE;
+        int maxIdx = Integer.MIN_VALUE;
+        long tick;
+        //ミスしたtickのリストから、ミスした箇所の特徴を抽出する
         for (int i = 0; i < tickList.size(); i++) {
-            Arrays.fill(soundSum, (byte) 0); //0埋めで初期化
-            long t = tickList.get(i);
+            //0埋めで初期化
+            Arrays.fill(soundSum, (byte) 0);
+            Arrays.fill(preSum, (byte) 0);
+            Arrays.fill(postSum, (byte) 0);
             //指定したtickの前後を見る。
-            //値の範囲の60は１小節の半分。(コレはmidiのタイミング解像度の半分)
-//            System.out.println("t : " + t);
-            for (long range = (t - tickRange); range < (t + tickRange); range++) {
-                if (range < 0) { //ファイルの先頭以前の部分ならばcontinue
+            tick = tickList.get(i);
+            for (long range = (tick - tickRange);
+                    range < (tick + tickRange); range++) {
+                //ファイルの先頭以前の部分ならばcontinue
+                if (range < 0) {
                     continue;
                 }
+                //NoteOnを取得する
                 soundScore = this.score.getNoteOn(range);
                 //ファイル末尾ならば終了
                 if (soundScore[0] == -1) {
@@ -69,14 +93,17 @@ public class Modeling {
                 }
                 //音の総和をとる
                 for (int j = 0; j < soundScore.length; j++) {
-                    soundSum[j] += soundScore[j];
+                    if(range < tick){ //ミスの直前まで
+                        preSum[j] += soundScore[j];
+                    }else{ //ミスの以後
+                        postSum[j] += soundScore[j];
+                    }
                 }
             }
-            int minIdx = Integer.MAX_VALUE;
-            int maxIdx = Integer.MIN_VALUE;
-
-            for (int j = 0; j < soundSum.length; j++) {
-                if (soundSum[j] != 0) {
+            minIdx = Integer.MAX_VALUE;
+            maxIdx = Integer.MIN_VALUE;
+            for (int j = 0; j < preSum.length; j++) {
+                if (preSum[j] != 0) {
                     if (minIdx > j) {
                         minIdx = j;
                     }
@@ -85,21 +112,43 @@ public class Modeling {
                     }
                 }
             }
-
-//            System.out.println(Arrays.toString(soundSum));
             //差分の結果、抽出したtickの前後一小節の音域
-            soundRange[i] = (maxIdx - minIdx);
+            preRange[i] = (maxIdx - minIdx);
+            minIdx = Integer.MAX_VALUE;
+            maxIdx = Integer.MIN_VALUE;
+            for (int j = 0; j < postSum.length; j++) {
+                if (postSum[j] != 0) {
+                    if (minIdx > j) {
+                        minIdx = j;
+                    }
+                    if (maxIdx < j) {
+                        maxIdx = j;
+                    }
+                }
+            }
+            //差分の結果、抽出したtickの前後一小節の音域
+            postRange[i] = (maxIdx - minIdx);
             //音の数
-            for (int j = 0; j < soundSum.length; j++) {
-                soundNum[i] += soundSum[j];
+            for (int j = 0; j < preSum.length; j++) {
+                preNum[i] += preSum[j];
+            }
+            //音の数
+            for (int j = 0; j < postSum.length; j++) {
+                postNum[i] += postSum[j];
             }
         }
-        double rangeAve = 0;
-        double numAve = 0;
-
+        for(int i = 0; i < preRange.length;i++){
+            soundRange[i] = postRange[i] - preRange[i];
+        }
+        for(int i = 0; i < preNum.length;i++){
+            soundNum[i] = postNum[i] - preNum[i];
+        }
         //結果をファイルに保存
         this.save2File(soundRange, soundNum);
 
+        /*DEBUG*/
+        double rangeAve = 0;
+        double numAve = 0;
         for (int i = 0; i < soundRange.length; i++) {
             rangeAve += soundRange[i];
             numAve += soundNum[i];
@@ -108,7 +157,7 @@ public class Modeling {
         numAve /= soundNum.length;
         System.out.println("平均");
         System.out.println("幅 : " + rangeAve + ", 数 : " + numAve);
-
+        /*DEBUG*/
     }
 
     /**
@@ -125,7 +174,7 @@ public class Modeling {
         byte[] soundScore;
         List<Long> tickList = new ArrayList<>();
         boolean isDifferent;
-        long range = recodeResolution / 16;
+        long range = recodeResolution / 16; //32分音符
         while (true) {
             tick = this.score.getNoteOnTick();
             if (tick < 0) {
@@ -160,7 +209,7 @@ public class Modeling {
      * x, y は空白区切りで保存されます。<br>
      * x, y の配列のサイズは同じでないといけません。<br>
      */
-    private void save2File(int [] x, int [] y){
+    private void save2File(int[] x, int[] y) {
         //結果をファイルに保存
         //上書きモードです。
         File file2 = new File("output/range-num.txt");

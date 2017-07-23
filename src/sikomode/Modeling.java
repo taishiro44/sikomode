@@ -31,8 +31,9 @@ public class Modeling {
 
     /**
      * モデルを計算するMidiファイルのオブジェクトをセットする。<br>
+     *
      * @param recode
-     * @param score 
+     * @param score
      */
     public void setMidi(Midi recode, Midi score) {
         this.recode = recode;
@@ -53,15 +54,15 @@ public class Modeling {
         SoundFeature post;
         //タイミング解像度は４分音符の長さなので、2倍することで２分音符分の長さをみる
         //４分の４拍子のため前後合わせて1小節の長さとなる
-        int tickRange = this.score.getResolution()* 2;
+        int tickRange = this.score.getResolution() * 2;
         //特徴抽出
         pre = this.extractFeature(tickList, tickRange, 0);
         post = this.extractFeature(tickList, 0, tickRange);
         //前後の変化量を計算
-        for(int i = 0; i < pre.range.length;i++){
+        for (int i = 0; i < pre.range.length; i++) {
             feature.range[i] = post.range[i] - pre.range[i];
         }
-        for(int i = 0; i < pre.num.length;i++){
+        for (int i = 0; i < pre.num.length; i++) {
             feature.num[i] = post.num[i] - pre.num[i];
         }
         feature.tick = pre.tick;
@@ -116,14 +117,15 @@ public class Modeling {
     /**
      * 特徴を抽出する。<br>
      * 抽出する特徴は、ミス前後の音の数と音域の変化量とする。<br>
-     * preRange <= tickList.get(index) <= postRangeの範囲を探索する。<br>
-     * @param tickList tickのリスト
+     * preRange <= tickList.get(index) <= postRangeの範囲を探索する。<br> @param tickLi
+     *
+     * st tickのリスト
      * @param preRange 指定したtickの前の範囲
      * @param postRange 指定したtickの後の範囲
-     * @return 
+     * @return
      */
-    private SoundFeature extractFeature(List<Long> tickList, 
-            int preRange, int postRange){
+    private SoundFeature extractFeature(List<Long> tickList,
+            int preRange, int postRange) {
         //取得したNoteOnを格納する
         byte[] soundScore;
         //tickRangeで指定した時間の間の音の総和
@@ -178,9 +180,9 @@ public class Modeling {
         }
         return feature;
     }
-    
+
     /**
-     * x, y の二次元の情報をファイルに保存します。<br>
+     * x, y の二次元の情報をcsvファイルに保存します。<br>
      * x, y は空白区切りで保存されます。<br>
      * x, y の配列のサイズは同じでないといけません。<br>
      */

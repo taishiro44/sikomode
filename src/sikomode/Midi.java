@@ -42,7 +42,7 @@ public class Midi {
     public Midi(String filePath) {
         this.readMidiFile(filePath);
     }
-    
+
     /**
      * MIDIファイルを読み込んだ後に、ファイルの値などを用いて初期化するやつとかを初期化する。
      */
@@ -329,7 +329,8 @@ public class Midi {
     /**
      * NoteOnのバイト配列を音名に変換する関数です。 変換は以下のurl参照。ヤマハ式で変換しました。<br>
      *
-     * @see <a href="http://www.g200kg.com/jp/docs/tech/notefreq.html">DTM技術情報</a>
+     * @see
+     * <a href="http://www.g200kg.com/jp/docs/tech/notefreq.html">DTM技術情報</a>
      * @param noteOnArray
      * @return
      */
@@ -351,7 +352,8 @@ public class Midi {
 
     /**
      * タイミング解像度を取得する。
-     * @return 
+     *
+     * @return
      */
     public int getResolution() {
         return this.resolution;
@@ -360,7 +362,7 @@ public class Midi {
     /**
      * MIDIファイルからフォーマットなどの情報を読み込む
      */
-    private void setFormat(){
+    private void setFormat() {
         //タイミング解像度
         this.resolution = this.midiFileFormat.getResolution();
         //smf0, smf1, smf2のいずれか
@@ -368,7 +370,7 @@ public class Midi {
         //トラック取得
         this.tracks = this.sequence.getTracks();
     }
-    
+
     /**
      * 読み込んだMIDIファイルのフォーマットを標準出力する。
      */

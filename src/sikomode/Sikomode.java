@@ -5,7 +5,6 @@
  */
 package sikomode;
 
-
 /**
  *
  * @author tanakataishiro
@@ -22,10 +21,10 @@ public class Sikomode {
         String filePathScore = "midi/yakusoku.mid";
         Midi recode = new Midi(filePathRecode);
         Midi score = new Midi(filePathScore);
-        
+
         Modeling model = new Modeling();
         model.setMidi(recode, score);
         model.culcModel();
-        
+
     }
 }

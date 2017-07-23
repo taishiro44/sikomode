@@ -9,12 +9,14 @@ import java.util.Arrays;
 
 /**
  * 音の特徴を格納するクラス
+ *
  * @author tanakataishiro
  */
 public class SoundFeature {
-    public int [] num;
-    public int [] range;
-    public long [] tick;
+
+    public int[] num;
+    public int[] range;
+    public long[] tick;
 
     public SoundFeature(int size) {
         //指定されたサイズで初期化 & 0埋め
@@ -25,5 +27,5 @@ public class SoundFeature {
         Arrays.fill(this.range, 0);
         Arrays.fill(this.tick, 0);
     }
-    
+
 }

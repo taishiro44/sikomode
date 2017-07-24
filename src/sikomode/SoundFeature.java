@@ -28,4 +28,8 @@ public class SoundFeature {
         Arrays.fill(this.tick, 0);
     }
 
+    public int length(){
+        return num.length;
+    }
+    
 }

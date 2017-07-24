@@ -25,6 +25,8 @@ public class Modeling {
 
     private Midi recode;
     private Midi score;
+    private SoundFeature feature;
+    private String advice;
 
     public Modeling() {
     }
@@ -48,7 +50,7 @@ public class Modeling {
         //差分を計算し、差分のあるTickのリストを取得
         List<Long> tickList = this.calcDiffece();
         //特徴
-        SoundFeature feature = new SoundFeature(tickList.size());
+        this.feature = new SoundFeature(tickList.size());
         //ミスの直前、以後の値
         SoundFeature pre;
         SoundFeature post;
@@ -66,8 +68,25 @@ public class Modeling {
             feature.num[i] = post.num[i] - pre.num[i];
         }
         feature.tick = pre.tick;
+        //アドバイスを生成する
+        this.createAdvice();
         //結果をファイルに保存
         this.save2File(feature.tick, feature.range, feature.num);
+    }
+
+    /**
+     * 作成したモデルを元に生成したアドバイスを取得する。
+     *
+     * @return
+     */
+    public String getAdvice() {
+        return advice;
+    }
+
+    /**
+     * モデルを元にアドバイスを生成する。
+     */
+    private void createAdvice() {
     }
 
     /**
@@ -120,6 +139,7 @@ public class Modeling {
      * preRange <= tickList.get(index) <= postRangeの範囲を探索する。<br> @param tickLi
      *
      * st tickのリスト
+     *
      * @param preRange 指定したtickの前の範囲
      * @param postRange 指定したtickの後の範囲
      * @return

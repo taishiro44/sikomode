@@ -25,6 +25,8 @@ public class Sikomode {
         Modeling model = new Modeling();
         model.setMidi(recode, score);
         model.culcModel();
+        String advice = model.getAdvice();
 
+        System.out.println(advice);
     }
 }

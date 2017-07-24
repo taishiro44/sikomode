@@ -71,7 +71,7 @@ public class Modeling {
         //アドバイスを生成する
         this.createAdvice();
         //結果をファイルに保存
-        this.save2File(feature.tick, feature.range, feature.num);
+        this.saveToCsv(feature.range, feature.num);
     }
 
     /**
@@ -87,6 +87,87 @@ public class Modeling {
      * モデルを元にアドバイスを生成する。
      */
     private void createAdvice() {
+        //閾値を絶対値で一つ定める
+        //そうすると一つの軸に対して、三つの領域が出来る。
+        //二次元なので9個の領域->9このメッセージ　で十分でしょう
+
+        //１小節の音が全部４分音符で８個
+        //８個増えたときを閾値とする。
+        int NUM_THRESHOLD = 8;
+        //1オクターブで11個
+        //2オクターブで23個（あとは12ずつ足していくだけ。
+        //2オクターブを閾値とする。
+        int RANGE_THRESHOLD = 23;
+        //各領域のプロット数を格納する
+        int[] range = {0, 0, 0}; //変化が{なし、正、負}
+        int[] num = {0, 0, 0}; //変化{なし、正、負}
+        //各領域のプロット数をカウント
+        for (int i = 0; i < this.feature.length(); i++) {
+            if (Math.abs(this.feature.num[i]) < NUM_THRESHOLD) { //速さの変化なし
+                num[0]++;
+            } else{ //変化あり
+                if (this.feature.num[i] > 0) { //正の変化量
+                    num[1]++;
+                } else { //負の変化量
+                    num[2]++;
+                }
+            }
+            if (Math.abs(this.feature.range[i]) < RANGE_THRESHOLD) { //音域の変化なし
+                range[0]++;
+            } else{ //変化あり
+                if (this.feature.range[i] > 0) { //正の変化量
+                    range[1]++;
+                } else { //負の変化量
+                    range[2]++;
+                }
+            }
+        }
+        System.out.println("各領域のプロット数");
+        System.out.println("range : " + Arrays.toString(range));
+        System.out.println("num : " + Arrays.toString(num));
+        String n = ""; //速さ
+        String r = ""; //広さ
+        int maxVal = num[0];
+        int maxIndex = 0;
+        for (int i = 1; i < num.length; i++) {
+            if (num[i] > maxVal) {
+                maxVal = num[i];
+                maxIndex = i;
+            }
+        }
+        switch (maxIndex) {
+            case 0:
+                n = "速さの変化がない時で、";
+                break;
+            case 1:
+                n = "曲が速くなる時で、";
+                break;
+            case 2:
+                n = "曲が遅くなる時で";
+                break;
+            default:
+        }
+        maxVal = range[0];
+        maxIndex = 0;
+        for (int i = 1; i < range.length; i++) {
+            if (range[i] > maxVal) {
+                maxVal = range[i];
+                maxIndex = i;
+            }
+        }
+        switch (maxIndex) {
+            case 0:
+                r = "音域の変化が小さい";
+                break;
+            case 1:
+                r = "音域が広くなる";
+                break;
+            case 2:
+                r = "音域が狭くなる";
+                break;
+            default:
+        }
+        this.advice = "あなたは、" + n + r + "場合が苦手なようです。";
     }
 
     /**
@@ -103,7 +184,7 @@ public class Modeling {
         byte[] soundScore;
         List<Long> tickList = new ArrayList<>();
         boolean isDifferent;
-        long range = recodeResolution / 16; //32分音符
+        long range = recodeResolution / 8; //32分音符
         while (true) {
             tick = this.score.getNoteOnTick();
             if (tick < 0) {
@@ -206,7 +287,7 @@ public class Modeling {
      * x, y は空白区切りで保存されます。<br>
      * x, y の配列のサイズは同じでないといけません。<br>
      */
-    private void save2File(long[] x, int[] y, int[] z) {
+    private void saveToCsv(int[] x, int[] y) {
         //結果をファイルに保存
         //上書きモードです。
         File file2 = new File("output/range-num.csv");
@@ -214,8 +295,7 @@ public class Modeling {
             try (PrintWriter pw = new PrintWriter(new BufferedWriter(fw))) {
                 for (int i = 0; i < x.length; i++) {
                     pw.print(x[i] + " ,");
-                    pw.print(y[i] + " ,");
-                    pw.print(z[i]);
+                    pw.print(y[i]);
                     pw.println();
                 }
             }
@@ -223,4 +303,4 @@ public class Modeling {
             Logger.getLogger(Sikomode.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-}
+                }

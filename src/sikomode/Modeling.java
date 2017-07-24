@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  */
 public class Modeling {
 
-    private Midi recode;
+    private Midi recoding;
     private Midi score;
     private SoundFeature feature;
     private String advice;
@@ -34,11 +34,11 @@ public class Modeling {
     /**
      * モデルを計算するMidiファイルのオブジェクトをセットする。<br>
      *
-     * @param recode
+     * @param recoding
      * @param score
      */
-    public void setMidi(Midi recode, Midi score) {
-        this.recode = recode;
+    public void setMidi(Midi recoding, Midi score) {
+        this.recoding = recoding;
         this.score = score;
     }
 
@@ -68,10 +68,11 @@ public class Modeling {
             feature.num[i] = post.num[i] - pre.num[i];
         }
         feature.tick = pre.tick;
+        feature.seconds = pre.seconds;
         //アドバイスを生成する
         this.createAdvice();
         //結果をファイルに保存
-        this.saveToCsv(feature.range, feature.num);
+        this.saveToCsv(feature.seconds, feature.range, feature.num);
     }
 
     /**
@@ -177,14 +178,14 @@ public class Modeling {
      */
     private List<Long> calcDiffece() {
         long tick;
-        int recodeResolution = this.recode.getResolution();
+        int recodingResolution = this.recoding.getResolution();
         int scoreResolution = this.score.getResolution();
-        double ratio = recodeResolution / scoreResolution;
-        byte[] soundRecode = new byte[128];
+        double ratio = recodingResolution / scoreResolution;
+        byte[] soundRecoding = new byte[128];
         byte[] soundScore;
         List<Long> tickList = new ArrayList<>();
         boolean isDifferent;
-        long range = recodeResolution / 8; //32分音符
+        long range = recodingResolution / 8; //32分音符
         while (true) {
             tick = this.score.getNoteOnTick();
             if (tick < 0) {
@@ -193,19 +194,19 @@ public class Modeling {
             soundScore = score.getNoteOn(tick);
             //録音から読み込むときは、指定tickにゆとりを持たせる。
             //タイミング解像度1920で、指定tickからだけの読み込みはシビアすぎる。
-            Arrays.fill(soundRecode, (byte) 0);
+            Arrays.fill(soundRecoding, (byte) 0);
             long temp = (long) (tick * ratio);
             for (long i = (temp - range); i < (temp + range); i++) {
-                byte[] s = this.recode.getNoteOn(i);
+                byte[] s = this.recoding.getNoteOn(i);
                 for (int j = 0; j < s.length; j++) {
                     if (s[j] == 1) {
-                        soundRecode[j] = 1;
+                        soundRecoding[j] = 1;
                     }
                 }
             }
             //バイト配列の差分処理
             //まずは二つの配列が違うということが分ればok
-            isDifferent = !Arrays.equals(soundRecode, soundScore);
+            isDifferent = !Arrays.equals(soundRecoding, soundScore);
             //もし異なれば、tickを記録。
             if (isDifferent) {
                 tickList.add(tick);
@@ -241,7 +242,9 @@ public class Modeling {
             //指定したtickの前後を見る。
             tick = tickList.get(i);
             //tickを保存
-            feature.tick[i] = tick;
+            //tick -> 秒に変換したい
+            //四分音符=78、タイミング解像度120、4分の4拍子とすると、下の式で変換できるはず。
+            feature.seconds[i] = (int)(tick * 60.0 * (1.0 / 78.0) * (1.0 / 120.0));
             for (long range = (tick - preRange);
                     range < (tick + postRange); range++) {
                 //ファイルの先頭以前の部分ならばcontinue
@@ -287,7 +290,7 @@ public class Modeling {
      * x, y は空白区切りで保存されます。<br>
      * x, y の配列のサイズは同じでないといけません。<br>
      */
-    private void saveToCsv(int[] x, int[] y) {
+    private void saveToCsv(int[] x, int[] y, int [] z) {
         //結果をファイルに保存
         //上書きモードです。
         File file2 = new File("output/range-num.csv");
@@ -295,7 +298,8 @@ public class Modeling {
             try (PrintWriter pw = new PrintWriter(new BufferedWriter(fw))) {
                 for (int i = 0; i < x.length; i++) {
                     pw.print(x[i] + " ,");
-                    pw.print(y[i]);
+                    pw.print(y[i] + " ,");
+                    pw.print(z[i]);
                     pw.println();
                 }
             }
@@ -303,4 +307,4 @@ public class Modeling {
             Logger.getLogger(Sikomode.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-                }
+}

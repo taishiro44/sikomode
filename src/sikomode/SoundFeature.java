@@ -16,15 +16,18 @@ public class SoundFeature {
 
     public int[] num;
     public int[] range;
+    public int [] seconds;
     public long[] tick;
 
     public SoundFeature(int size) {
         //指定されたサイズで初期化 & 0埋め
         this.num = new int[size];
         this.range = new int[size];
+        this.seconds = new int[size];
         this.tick = new long[size];
         Arrays.fill(this.num, 0);
         Arrays.fill(this.range, 0);
+        Arrays.fill(this.seconds, 0);
         Arrays.fill(this.tick, 0);
     }
 

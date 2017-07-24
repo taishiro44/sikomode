@@ -31,7 +31,12 @@ public class Midi {
     private byte[] midiMessage;
     private int midiFileType; //smfのフォーマットタイプ(0, 1 or 2)
     private int resolution; //タイミング解像度
-    private long firstNoteOnTick; //最初の音が鳴ったときのTick
+    
+    //一時的にpublicにします
+    //録音は最初の音のとり方を変える
+    //メトロノームにあわせる。
+    public long firstNoteOnTick; //最初の音が鳴ったときのTick
+    
     private byte[] currentNoteOn;
     private int[] noteOnIndices;
     private long tickMax;

@@ -17,13 +17,20 @@ public class Sikomode {
     public static void main(String[] args) {
         // TODO code application logic here
 
-        String filePathRecode = "midi/USERSONG019.MID";
+        String filePathRecoding = "midi/USERSONG019.MID";
         String filePathScore = "midi/yakusoku.mid";
-        Midi recode = new Midi(filePathRecode);
+        Midi recoding = new Midi(filePathRecoding);
         Midi score = new Midi(filePathScore);
+        
+        //タイミング解像度==1920
+        //録音は最初の音を基準にすると、
+        //最初の音のミスが全体に響く。
+        //メトロノームのtickにあわせる。
+        //960 * 25 = 24000 は、ファイルの中身を見て決めた
+        recoding.firstNoteOnTick = 960 * 25;
 
         Modeling model = new Modeling();
-        model.setMidi(recode, score);
+        model.setMidi(recoding, score);
         model.culcModel();
         String advice = model.getAdvice();
 
